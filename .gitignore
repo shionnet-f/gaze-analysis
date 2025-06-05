@@ -6,7 +6,7 @@ exported_csv/
 PsychoData/
 # 生視線データ
 tobiiData/
-# AOI処理済み画像
+# AOI検出済み提示画像
 output_aoi/
 # 処理済みデータ(色々(試しのものも含む))
 *.csv
