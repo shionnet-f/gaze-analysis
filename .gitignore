@@ -10,5 +10,6 @@ tobiiData/
 output_aoi/
 # AOI画像に注視のプロット
 plotscatter_fixation_IvtFiltered/
+plotscatter_fixation_IdtFiltered/
 # 処理済みデータ(色々(試しのものも含む))
 *.csv
