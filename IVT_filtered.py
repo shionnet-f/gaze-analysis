@@ -6,9 +6,9 @@ import matplotlib.image as mpimg
 from scipy.ndimage import gaussian_filter1d
 
 # 被験者ID
-for subject_id in range(1,20): 
+for subject_id in range(1,2): 
     # 実験番号
-    for experiment_id in range(1, 4):
+    for experiment_id in range(1, 2):
 
         # モニターサイズ(物理)
         monitor_width_cm = 47.6
@@ -213,12 +213,14 @@ for subject_id in range(1,20):
             ax.imshow(img, extent=[0, 1920, 1080, 0])  # 上下反転（y軸を上→下に）
 
             # 散布図の描画（fix_dfは事前に用意）
-            ax.scatter(fix_df["x_px"], fix_df["y_px"], alpha=0.6, c='green', s=50)
+            ax.scatter(fix_df["x_px"], fix_df["y_px"], alpha=0.6, c='green', s=20)
 
             # 軸設定（アスペクト比保持）
             ax.set_xlim(0, 1920)
             ax.set_ylim(1080, 0)  # y軸を反転
             ax.set_box_aspect(1080 / 1920)  # 縦横比を固定
+            
+            fig.text(0.1,0.05, f"Fixations: {len(fix_df)}", color="black", fontsize=10, bbox=dict(facecolor='white', edgecolor='black'))
 
             # ラベルや装飾
             ax.set_title(f"IVT Fixations in Trial {int(trial_num + 1)}")
@@ -229,9 +231,13 @@ for subject_id in range(1,20):
             print(f"ID{subject_id:03}-{experiment_id:03}の画像{experiment_id}-{int(trial_num + 1)}: {len(fix_df)} fixations detected.")
 
             # レイアウト調整＆表示
-            # plt.tight_layout()
-            # plt.show()
-            plt.close(fig)  # ← これを忘れない
+            plt.tight_layout()
+            plt.show()
+            
+            fig.savefig(f"plotscatter_fixation_IvtFiltered/fixation_id{subject_id:03}-{experiment_id:03}_trial{int(trial_num + 1)}.png",
+            dpi=300, bbox_inches='tight')
+
+            # plt.close(fig)  # ← これを忘れない
 
 # new1_df=interpolate_missing(eye_df)
 
