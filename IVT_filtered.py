@@ -1,4 +1,3 @@
-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,7 +5,7 @@ import matplotlib.image as mpimg
 from scipy.ndimage import gaussian_filter1d
 
 # 被験者ID
-for subject_id in range(1,2): 
+for subject_id in range(1, 2):
     # 実験番号
     for experiment_id in range(1, 2):
 
@@ -18,14 +17,16 @@ for subject_id in range(1,2):
         # 視距離(cm)
         viewer_distance_cm = 60.0
 
-
         # IVT法のパラメータ
-        VELOCITY_THRESHOLD = 30 # deg
+        VELOCITY_THRESHOLD = 30  # deg
         DURATION_THRESHOLD_MS = 100  # ms
 
-        eye_df = pd.read_csv(f"exported_csv/eye_df_id{subject_id:03}-{experiment_id:03}.csv")
-        sampling_df = pd.read_csv(f"exported_csv/sampling_df_id{subject_id:03}-{experiment_id:03}.csv")
-
+        eye_df = pd.read_csv(
+            f"exported_csv/eye_df_id{subject_id:03}-{experiment_id:03}.csv"
+        )
+        sampling_df = pd.read_csv(
+            f"exported_csv/sampling_df_id{subject_id:03}-{experiment_id:03}.csv"
+        )
 
         # cm/pxの変換係数
         cm_per_pixel_x = monitor_width_cm / monitor_resolution_px[0]
@@ -36,8 +37,12 @@ for subject_id in range(1,2):
         eye_df["gy_centered"] = eye_df["gy"] - 0.5
 
         # 中心(0,0)での物理距離変換
-        eye_df["x_cm"] = eye_df["gx_centered"] * monitor_resolution_px[0] * cm_per_pixel_x
-        eye_df["y_cm"] = eye_df["gy_centered"] * monitor_resolution_px[1] * cm_per_pixel_y
+        eye_df["x_cm"] = (
+            eye_df["gx_centered"] * monitor_resolution_px[0] * cm_per_pixel_x
+        )
+        eye_df["y_cm"] = (
+            eye_df["gy_centered"] * monitor_resolution_px[1] * cm_per_pixel_y
+        )
 
         # 視野角の計算
         eye_df["x_deg"] = np.degrees(np.arctan2(eye_df["x_cm"], viewer_distance_cm))
@@ -47,19 +52,19 @@ for subject_id in range(1,2):
         eye_df["is_valid"] = eye_df["validity_sum"] > 1
 
         def interpolate_missing(df, time_col="epoch_sec", max_gap_ms=100):
-            df= df.copy()
-            df["valid"]= df["is_valid"]
-            df["interp_x"]= np.nan
-            df["interp_y"]= np.nan
+            df = df.copy()
+            df["valid"] = df["is_valid"]
+            df["interp_x"] = np.nan
+            df["interp_y"] = np.nan
 
             # 有効データを代入
             df.loc[df["valid"], "interp_x"] = df.loc[df["valid"], "x_deg"]
             df.loc[df["valid"], "interp_y"] = df.loc[df["valid"], "y_deg"]
-            
+
             # 内部のみ線形補完
             df["interp_x"] = df["interp_x"].interpolate(limit_area="inside")
             df["interp_y"] = df["interp_y"].interpolate(limit_area="inside")
-            
+
             # 無効区間の連続ブロックを取得
             invalid_mask = ~df["valid"]
             group_id = (invalid_mask != invalid_mask.shift()).cumsum()
@@ -74,13 +79,14 @@ for subject_id in range(1,2):
                 if duration_ms > max_gap_ms:
                     # 100ms超えたら補完結果をNaNに戻す
                     df.loc[block.index, ["interp_x", "interp_y"]] = np.nan
-            
 
             return df
 
-        def apply_gaussian_filter_by_block(df, col_x="interp_x", col_y="interp_y", sigma=1.0):
+        def apply_gaussian_filter_by_block(
+            df, col_x="interp_x", col_y="interp_y", sigma=1.0
+        ):
             df = df.copy()
-            df["valid"]= df["is_valid"]
+            df["valid"] = df["is_valid"]
             df["filtered_x"] = np.nan
             df["filtered_y"] = np.nan
 
@@ -98,12 +104,16 @@ for subject_id in range(1,2):
 
             return df
 
-        def detect_fixations_ivt(df, velocity_threshold=VELOCITY_THRESHOLD, duration_threshold_ms=DURATION_THRESHOLD_MS):
+        def detect_fixations_ivt(
+            df,
+            velocity_threshold=VELOCITY_THRESHOLD,
+            duration_threshold_ms=DURATION_THRESHOLD_MS,
+        ):
             fixations = []
             timestamps = df["epoch_sec"].to_numpy()
             xs = df["filtered_x"].to_numpy()
             ys = df["filtered_y"].to_numpy()
-            
+
             # 速度（deg/s）を計算
             delta_t = np.diff(timestamps)
             delta_x = np.diff(xs)
@@ -113,12 +123,12 @@ for subject_id in range(1,2):
 
             velocities = np.sqrt(delta_x**2 + delta_y**2) / safe_delta_t
             velocities = np.insert(velocities, 0, 0)
-            
+
             velocities = np.nan_to_num(velocities, nan=0.0, posinf=0.0, neginf=0.0)
 
             in_fixation = False
             start_idx = 0
-        
+
             for i in range(len(df)):
                 if np.isnan(xs[i]) or np.isnan(ys[i]):
                     if in_fixation:
@@ -128,13 +138,15 @@ for subject_id in range(1,2):
                         t_end = timestamps[i - 1]
                         duration = (t_end - t_start) * 1000
                         if duration >= duration_threshold_ms:
-                            fixations.append({
-                                "start_time": t_start,
-                                "end_time": t_end,
-                                "duration_ms": duration,
-                                "x_mean_deg": np.mean(xs[start_idx:i]),
-                                "y_mean_deg": np.mean(ys[start_idx:i]),
-                            })
+                            fixations.append(
+                                {
+                                    "start_time": t_start,
+                                    "end_time": t_end,
+                                    "duration_ms": duration,
+                                    "x_mean_deg": np.mean(xs[start_idx:i]),
+                                    "y_mean_deg": np.mean(ys[start_idx:i]),
+                                }
+                            )
                     continue
 
                 if velocities[i] < velocity_threshold:
@@ -148,13 +160,15 @@ for subject_id in range(1,2):
                         t_end = timestamps[i - 1]
                         duration = (t_end - t_start) * 1000
                         if duration >= duration_threshold_ms:
-                            fixations.append({
-                                "start_time": t_start,
-                                "end_time": t_end,
-                                "duration_ms": duration,
-                                "x_mean_deg": np.mean(xs[start_idx:i]),
-                                "y_mean_deg": np.mean(ys[start_idx:i]),
-                            })
+                            fixations.append(
+                                {
+                                    "start_time": t_start,
+                                    "end_time": t_end,
+                                    "duration_ms": duration,
+                                    "x_mean_deg": np.mean(xs[start_idx:i]),
+                                    "y_mean_deg": np.mean(ys[start_idx:i]),
+                                }
+                            )
 
             # 最後が注視で終わっていた場合
             if in_fixation:
@@ -162,13 +176,15 @@ for subject_id in range(1,2):
                 t_end = timestamps[-1]
                 duration = (t_end - t_start) * 1000
                 if duration >= duration_threshold_ms:
-                    fixations.append({
-                        "start_time": t_start,
-                        "end_time": t_end,
-                        "duration_ms": duration,
-                        "x_mean_deg": np.mean(xs[start_idx:]),
-                        "y_mean_deg": np.mean(ys[start_idx:]),
-                    })
+                    fixations.append(
+                        {
+                            "start_time": t_start,
+                            "end_time": t_end,
+                            "duration_ms": duration,
+                            "x_mean_deg": np.mean(xs[start_idx:]),
+                            "y_mean_deg": np.mean(ys[start_idx:]),
+                        }
+                    )
 
             return pd.DataFrame(fixations)
 
@@ -186,7 +202,9 @@ for subject_id in range(1,2):
             t_end = row["end_sec"]
             trial_num = row["trial"]
 
-            trial_df = eye_df[(eye_df["epoch_sec"] >= t_start) & (eye_df["epoch_sec"] <= t_end)]
+            trial_df = eye_df[
+                (eye_df["epoch_sec"] >= t_start) & (eye_df["epoch_sec"] <= t_end)
+            ]
             interp_df = interpolate_missing(trial_df)
             filtered_df = apply_gaussian_filter_by_block(interp_df)
             fix_df = detect_fixations_ivt(filtered_df)
@@ -196,15 +214,19 @@ for subject_id in range(1,2):
                 continue
 
             fix_df["trial"] = trial_num
-            fix_df["x_px"], fix_df["y_px"] = deg_to_px(fix_df["x_mean_deg"], fix_df["y_mean_deg"])
+            fix_df["x_px"], fix_df["y_px"] = deg_to_px(
+                fix_df["x_mean_deg"], fix_df["y_mean_deg"]
+            )
             all_fixations.append(fix_df)
-            
+
             # print("**************************************")
             # print(fix_df)
             # print(len(fix_df))
 
             # 背景画像を読み込み
-            img = mpimg.imread(f"output_aoi/{experiment_id}-{int(trial_num)+1}.jpg")  # 例: "background.png"
+            img = mpimg.imread(
+                f"output_aoi/{experiment_id}-{int(trial_num)+1}.jpg"
+            )  # 例: "background.png"
 
             # 図の作成
             fig, ax = plt.subplots()
@@ -213,14 +235,21 @@ for subject_id in range(1,2):
             ax.imshow(img, extent=[0, 1920, 1080, 0])  # 上下反転（y軸を上→下に）
 
             # 散布図の描画（fix_dfは事前に用意）
-            ax.scatter(fix_df["x_px"], fix_df["y_px"], alpha=0.6, c='green', s=20)
+            ax.scatter(fix_df["x_px"], fix_df["y_px"], alpha=0.6, c="green", s=20)
 
             # 軸設定（アスペクト比保持）
             ax.set_xlim(0, 1920)
             ax.set_ylim(1080, 0)  # y軸を反転
             ax.set_box_aspect(1080 / 1920)  # 縦横比を固定
-            
-            fig.text(0.1,0.05, f"Fixations: {len(fix_df)}", color="black", fontsize=10, bbox=dict(facecolor='white', edgecolor='black'))
+
+            fig.text(
+                0.1,
+                0.05,
+                f"Fixations: {len(fix_df)}",
+                color="black",
+                fontsize=10,
+                bbox=dict(facecolor="white", edgecolor="black"),
+            )
 
             # ラベルや装飾
             ax.set_title(f"IVT Fixations in Trial {int(trial_num + 1)}")
@@ -228,14 +257,19 @@ for subject_id in range(1,2):
             ax.set_ylabel("Y (px)")
             ax.grid(True)
 
-            print(f"ID{subject_id:03}-{experiment_id:03}の画像{experiment_id}-{int(trial_num + 1)}: {len(fix_df)} fixations detected.")
+            print(
+                f"ID{subject_id:03}-{experiment_id:03}の画像{experiment_id}-{int(trial_num + 1)}: {len(fix_df)} fixations detected."
+            )
 
             # レイアウト調整＆表示
             plt.tight_layout()
             plt.show()
-            
-            fig.savefig(f"plotscatter_fixation_IvtFiltered/fixation_id{subject_id:03}-{experiment_id:03}_trial{int(trial_num + 1)}.png",
-            dpi=300, bbox_inches='tight')
+
+            fig.savefig(
+                f"plotscatter_fixation_IvtFiltered/fixation_id{subject_id:03}-{experiment_id:03}_trial{int(trial_num + 1)}.png",
+                dpi=300,
+                bbox_inches="tight",
+            )
 
             # plt.close(fig)  # ← これを忘れない
 
@@ -246,4 +280,3 @@ for subject_id in range(1,2):
 # new3_df=detect_fixations_ivt(new2_df)
 
 # deg_to_px(new3_df["x_mean_deg"], new3_df["y_mean_deg"])
-

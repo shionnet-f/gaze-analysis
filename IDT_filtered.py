@@ -4,16 +4,19 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from scipy.ndimage import gaussian_filter1d
 
-for subject_id in range(1,2): 
+for subject_id in range(1, 2):
     # 実験番号
     for experiment_id in range(1, 2):
         # IDT法のパラメータ
         DISPERSION_THRESHOLD = 1.0  # deg
         DURATION_THRESHOLD_MS = 100  # ms
 
-        eye_df = pd.read_csv(f"exported_csv/eye_df_id{subject_id:03}-{experiment_id:03}.csv")
-        sampling_df = pd.read_csv(f"exported_csv/sampling_df_id{subject_id:03}-{experiment_id:03}.csv")
-
+        eye_df = pd.read_csv(
+            f"exported_csv/eye_df_id{subject_id:03}-{experiment_id:03}.csv"
+        )
+        sampling_df = pd.read_csv(
+            f"exported_csv/sampling_df_id{subject_id:03}-{experiment_id:03}.csv"
+        )
 
         # モニターサイズ(物理)
         monitor_width_cm = 47.6
@@ -32,8 +35,12 @@ for subject_id in range(1,2):
         eye_df["gy_centered"] = eye_df["gy"] - 0.5
 
         # 中心(0,0)での物理距離変換
-        eye_df["x_cm"] = eye_df["gx_centered"] * monitor_resolution_px[0] * cm_per_pixel_x
-        eye_df["y_cm"] = eye_df["gy_centered"] * monitor_resolution_px[1] * cm_per_pixel_y
+        eye_df["x_cm"] = (
+            eye_df["gx_centered"] * monitor_resolution_px[0] * cm_per_pixel_x
+        )
+        eye_df["y_cm"] = (
+            eye_df["gy_centered"] * monitor_resolution_px[1] * cm_per_pixel_y
+        )
 
         # 視野角の計算
         eye_df["x_deg"] = np.degrees(np.arctan2(eye_df["x_cm"], viewer_distance_cm))
@@ -73,7 +80,6 @@ for subject_id in range(1,2):
 
             return df
 
-
         def apply_gaussian_filter_by_block(df, col_x="x_deg", col_y="y_deg", sigma=1.0):
             df = df.copy()
             df["valid"] = df["is_valid"]
@@ -94,7 +100,6 @@ for subject_id in range(1,2):
 
             return df
 
-
         def detect_fixations_idt(
             df,
             dispersion_threshold=DISPERSION_THRESHOLD,
@@ -110,7 +115,7 @@ for subject_id in range(1,2):
                 if np.isnan(xs[i]) or np.isnan(ys[i]):
                     i += 1
                     continue
-                
+
                 window = [(xs[i], ys[i])]
                 t_start = timestamps[i]
                 j = i + 1
@@ -118,7 +123,7 @@ for subject_id in range(1,2):
                 while j < len(df):
                     if np.isnan(xs[j]) or np.isnan(ys[j]):
                         break
-                    
+
                     window.append((xs[j], ys[j]))
                     t_end = timestamps[j]
                     duration = (t_end - t_start) * 1000
@@ -127,12 +132,13 @@ for subject_id in range(1,2):
                     x_center = np.mean(x_vals)
                     y_center = np.mean(y_vals)
                     distances = np.sqrt(
-                        (np.array(x_vals) - x_center) ** 2 + (np.array(y_vals) - y_center) ** 2
+                        (np.array(x_vals) - x_center) ** 2
+                        + (np.array(y_vals) - y_center) ** 2
                     )
 
                     if np.max(distances) > dispersion_threshold:
                         break
-                    
+
                     j += 1
 
                 # 注視条件を満たしていれば1つだけ追加
@@ -152,7 +158,6 @@ for subject_id in range(1,2):
 
             return pd.DataFrame(fixations)
 
-
         def deg_to_px(x_deg, y_deg):
             x_cm = np.tan(np.radians(x_deg)) * viewer_distance_cm
             y_cm = np.tan(np.radians(y_deg)) * viewer_distance_cm
@@ -162,7 +167,6 @@ for subject_id in range(1,2):
 
             return x_px, y_px
 
-
         all_fixations = []
 
         for _, row in sampling_df.iterrows():
@@ -170,7 +174,9 @@ for subject_id in range(1,2):
             t_end = row["end_sec"]
             trial_num = row["trial"]
 
-            df_trial = eye_df[(eye_df["epoch_sec"] >= t_start) & (eye_df["epoch_sec"] <= t_end)]
+            df_trial = eye_df[
+                (eye_df["epoch_sec"] >= t_start) & (eye_df["epoch_sec"] <= t_end)
+            ]
             df_interp = interpolate_missing(df_trial)
             df_filtered = apply_gaussian_filter_by_block(df_interp)
             fix_df = detect_fixations_idt(
@@ -180,7 +186,7 @@ for subject_id in range(1,2):
             if fix_df.empty:
                 print(f"Trial {trial_num}: No fixations detected.")
                 continue
-            
+
             fix_df["trial"] = trial_num
             fix_df["x_px"], fix_df["y_px"] = deg_to_px(
                 fix_df["x_mean_deg"], fix_df["y_mean_deg"]
@@ -192,7 +198,9 @@ for subject_id in range(1,2):
             # print(len(fix_df))
 
             # 背景画像を読み込み
-            img = mpimg.imread(f"output_aoi/{experiment_id}-{int(trial_num)+1}.jpg")  # 例: "background.png"
+            img = mpimg.imread(
+                f"output_aoi/{experiment_id}-{int(trial_num)+1}.jpg"
+            )  # 例: "background.png"
 
             # 図の作成
             fig, ax = plt.subplots()
@@ -201,14 +209,21 @@ for subject_id in range(1,2):
             ax.imshow(img, extent=[0, 1920, 1080, 0])  # 上下反転（y軸を上→下に）
 
             # 散布図の描画（fix_dfは事前に用意）
-            ax.scatter(fix_df["x_px"], fix_df["y_px"], alpha=0.6, c='blue', s=20)
+            ax.scatter(fix_df["x_px"], fix_df["y_px"], alpha=0.6, c="blue", s=20)
 
             # 軸設定（アスペクト比保持）
             ax.set_xlim(0, 1920)
             ax.set_ylim(1080, 0)  # y軸を反転
             ax.set_box_aspect(1080 / 1920)  # 縦横比を固定
-            
-            fig.text(0.1,0.05, f"Fixations: {len(fix_df)}", color="black", fontsize=10, bbox=dict(facecolor='white', edgecolor='black'))
+
+            fig.text(
+                0.1,
+                0.05,
+                f"Fixations: {len(fix_df)}",
+                color="black",
+                fontsize=10,
+                bbox=dict(facecolor="white", edgecolor="black"),
+            )
 
             # ラベルや装飾
             ax.set_title(f"IVT Fixations in Trial {int(trial_num + 1)}")
@@ -216,14 +231,19 @@ for subject_id in range(1,2):
             ax.set_ylabel("Y (px)")
             ax.grid(True)
 
-            print(f"ID{subject_id:03}-{experiment_id:03}の画像{experiment_id}-{int(trial_num + 1)}: {len(fix_df)} fixations detected.")
+            print(
+                f"ID{subject_id:03}-{experiment_id:03}の画像{experiment_id}-{int(trial_num + 1)}: {len(fix_df)} fixations detected."
+            )
 
             # レイアウト調整＆表示
             plt.tight_layout()
             plt.show()
-            
-            fig.savefig(f"plotscatter_fixation_IdtFiltered/fixation_id{subject_id:03}-{experiment_id:03}_trial{int(trial_num + 1)}.png",
-            dpi=300, bbox_inches='tight')
+
+            fig.savefig(
+                f"plotscatter_fixation_IdtFiltered/fixation_id{subject_id:03}-{experiment_id:03}_trial{int(trial_num + 1)}.png",
+                dpi=300,
+                bbox_inches="tight",
+            )
 
             # plt.close(fig)  # ← これを忘れない
 
