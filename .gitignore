@@ -8,5 +8,7 @@ PsychoData/
 tobiiData/
 # AOI検出済み提示画像
 output_aoi/
+# AOI画像に注視のプロット
+plotscatter_fixation_IvtFiltered/
 # 処理済みデータ(色々(試しのものも含む))
 *.csv
