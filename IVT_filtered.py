@@ -270,4 +270,3 @@ for subject_id in range(1,2):
 # new3_df=detect_fixations_ivt(new2_df)
 
 # deg_to_px(new3_df["x_mean_deg"], new3_df["y_mean_deg"])
-
