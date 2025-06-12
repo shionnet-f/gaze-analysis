@@ -4,9 +4,12 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from scipy.ndimage import gaussian_filter1d
 
-# 被験者ID
-for subject_id in range(1,2): 
-    # 実験番号
+
+# IVT法による注視検出と可視化
+
+# 対象の被験者19名分
+for subject_id in range(1,20): 
+    # 各被験者の実験課題3回分
     for experiment_id in range(1, 2):
 
         # モニターサイズ(物理)
@@ -51,6 +54,7 @@ for subject_id in range(1,2):
         # データの有効性
         eye_df["is_valid"] = eye_df["validity_sum"] > 1
 
+        # 100ms以下の欠損を線形補完の処理
         def interpolate_missing(df, time_col="epoch_sec", max_gap_ms=100):
             df = df.copy()
             df["valid"] = df["is_valid"]
@@ -82,6 +86,7 @@ for subject_id in range(1,2):
 
             return df
 
+        # ガウシアンフィルタをブロックごとに適用
         def apply_gaussian_filter_by_block(
             df, col_x="interp_x", col_y="interp_y", sigma=1.0
         ):
@@ -104,6 +109,7 @@ for subject_id in range(1,2):
 
             return df
 
+        # IVT法による注視検出
         def detect_fixations_ivt(
             df,
             velocity_threshold=VELOCITY_THRESHOLD,
@@ -188,6 +194,7 @@ for subject_id in range(1,2):
 
             return pd.DataFrame(fixations)
 
+        # 度数法からピクセル単位に変換
         def deg_to_px(x_mean_deg, y_mean_deg):
             x_cm = np.tan(np.radians(x_mean_deg)) * viewer_distance_cm
             y_cm = np.tan(np.radians(y_mean_deg)) * viewer_distance_cm

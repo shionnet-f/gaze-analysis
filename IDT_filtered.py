@@ -4,9 +4,12 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from scipy.ndimage import gaussian_filter1d
 
-for subject_id in range(1, 2):
-    # 実験番号
-    for experiment_id in range(1, 2):
+# IDT法による注視検出と可視化
+
+# 対象の被験者19名分
+for subject_id in range(1, 20):
+    # 各被験者の実験課題3回分
+    for experiment_id in range(1, 4):
         # IDT法のパラメータ
         DISPERSION_THRESHOLD = 1.0  # deg
         DURATION_THRESHOLD_MS = 100  # ms
@@ -49,6 +52,7 @@ for subject_id in range(1, 2):
         # データの有効性
         eye_df["is_valid"] = eye_df["validity_sum"] > 1
 
+        # 線形補完の処理
         def interpolate_missing(df, time_col="epoch_sec", max_gap_ms=100):
             df = df.copy()
             df["valid"] = df["is_valid"]
@@ -80,6 +84,7 @@ for subject_id in range(1, 2):
 
             return df
 
+        # ガウシアンフィルタをブロックごとに適用
         def apply_gaussian_filter_by_block(df, col_x="x_deg", col_y="y_deg", sigma=1.0):
             df = df.copy()
             df["valid"] = df["is_valid"]
@@ -99,7 +104,8 @@ for subject_id in range(1, 2):
                 df.loc[idx, "filtered_y"] = smoothed_y
 
             return df
-
+        
+        # IDT法による注視検出
         def detect_fixations_idt(
             df,
             dispersion_threshold=DISPERSION_THRESHOLD,
@@ -158,6 +164,7 @@ for subject_id in range(1, 2):
 
             return pd.DataFrame(fixations)
 
+        # 度数法からピクセル単位に変換
         def deg_to_px(x_deg, y_deg):
             x_cm = np.tan(np.radians(x_deg)) * viewer_distance_cm
             y_cm = np.tan(np.radians(y_deg)) * viewer_distance_cm
@@ -245,7 +252,7 @@ for subject_id in range(1, 2):
                 bbox_inches="tight",
             )
 
-            # plt.close(fig)  # ← これを忘れない
+            # plt.close(fig)  
 
 # new1_df=interpolate_missing(eye_df)
 # # print(new1_df.head())
