@@ -7,9 +7,9 @@ from scipy.ndimage import gaussian_filter1d
 # IDT法による注視検出と可視化
 
 # 対象の被験者19名分
-for subject_id in range(1, 20):
+for subject_id in range(1,20):
     # 各被験者の実験課題3回分
-    for experiment_id in range(1, 4):
+    for experiment_id in range(3, 4):
         # IDT法のパラメータ
         DISPERSION_THRESHOLD = 1.0  # deg
         DURATION_THRESHOLD_MS = 100  # ms
@@ -203,7 +203,9 @@ for subject_id in range(1, 20):
             # print("**************************************")
             # print(fix_df)
             # print(len(fix_df))
-
+            
+            
+            """
             # 背景画像を読み込み
             img = mpimg.imread(
                 f"output_aoi/{experiment_id}-{int(trial_num)+1}.jpg"
@@ -216,7 +218,7 @@ for subject_id in range(1, 20):
             ax.imshow(img, extent=[0, 1920, 1080, 0])  # 上下反転（y軸を上→下に）
 
             # 散布図の描画（fix_dfは事前に用意）
-            ax.scatter(fix_df["x_px"], fix_df["y_px"], alpha=0.6, c="blue", s=20)
+            ax.scatter(fix_df["x_px"], fix_df["y_px"], alpha=0.6, c="blue", s=10)
 
             # 軸設定（アスペクト比保持）
             ax.set_xlim(0, 1920)
@@ -243,8 +245,8 @@ for subject_id in range(1, 20):
             )
 
             # レイアウト調整＆表示
-            plt.tight_layout()
-            plt.show()
+            # plt.tight_layout()
+            # plt.show()
 
             fig.savefig(
                 f"plotscatter_fixation_IdtFiltered/fixation_id{subject_id:03}-{experiment_id:03}_trial{int(trial_num + 1)}.png",
@@ -253,6 +255,8 @@ for subject_id in range(1, 20):
             )
 
             # plt.close(fig)  
+            
+            """
 
 # new1_df=interpolate_missing(eye_df)
 # # print(new1_df.head())

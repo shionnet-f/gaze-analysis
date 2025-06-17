@@ -10,7 +10,7 @@ from scipy.ndimage import gaussian_filter1d
 # 対象の被験者19名分
 for subject_id in range(1,20): 
     # 各被験者の実験課題3回分
-    for experiment_id in range(1, 2):
+    for experiment_id in range(1, 4):
 
         # モニターサイズ(物理)
         monitor_width_cm = 47.6
@@ -268,7 +268,7 @@ for subject_id in range(1,20):
             fig.savefig(f"plotscatter_fixation_IvtFiltered/fixation_id{subject_id:03}-{experiment_id:03}_trial{int(trial_num + 1)}.png",
             dpi=300, bbox_inches='tight')
 
-            plt.close(fig)  # ← これを忘れない
+            # plt.close(fig)  # ← これを忘れない
 
 # new1_df=interpolate_missing(eye_df)
 
