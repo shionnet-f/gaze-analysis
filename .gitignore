@@ -8,6 +8,7 @@ PsychoData/
 tobiiData/
 # AOI検出済み提示画像
 output_aoi/
+output_aoi_triangle/
 # AOI画像に注視のプロット
 plotscatter_fixation_IvtFiltered/
 plotscatter_fixation_IdtFiltered/
