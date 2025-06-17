@@ -12,5 +12,7 @@ output_aoi_triangle/
 # AOI画像に注視のプロット
 plotscatter_fixation_IvtFiltered/
 plotscatter_fixation_IdtFiltered/
+# validityを可視化
+plotstep_validity
 # 処理済みデータ(色々(試しのものも含む))
 *.csv
