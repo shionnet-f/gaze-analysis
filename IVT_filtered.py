@@ -229,51 +229,53 @@ for subject_id in range(1,20):
             # print("**************************************")
             # print(fix_df)
             # print(len(fix_df))
+            
+            """
+            # # 背景画像を読み込み
+            # img = mpimg.imread(
+            #     f"output_aoi/{experiment_id}-{int(trial_num)+1}.jpg"
+            # )  # 例: "background.png"
 
-            # 背景画像を読み込み
-            img = mpimg.imread(
-                f"output_aoi/{experiment_id}-{int(trial_num)+1}.jpg"
-            )  # 例: "background.png"
+            # # 図の作成
+            # fig, ax = plt.subplots()
 
-            # 図の作成
-            fig, ax = plt.subplots()
+            # # 背景画像の表示（軸にフィットさせて）
+            # ax.imshow(img, extent=[0, 1920, 1080, 0])  # 上下反転（y軸を上→下に）
 
-            # 背景画像の表示（軸にフィットさせて）
-            ax.imshow(img, extent=[0, 1920, 1080, 0])  # 上下反転（y軸を上→下に）
+            # # 散布図の描画（fix_dfは事前に用意）
+            # ax.scatter(fix_df["x_px"], fix_df["y_px"], alpha=0.5, c='green', s=10)
 
-            # 散布図の描画（fix_dfは事前に用意）
-            ax.scatter(fix_df["x_px"], fix_df["y_px"], alpha=0.5, c='green', s=10)
+            # # 軸設定（アスペクト比保持）
+            # ax.set_xlim(0, 1920)
+            # ax.set_ylim(1080, 0)  # y軸を反転
+            # ax.set_box_aspect(1080 / 1920)  # 縦横比を固定
 
-            # 軸設定（アスペクト比保持）
-            ax.set_xlim(0, 1920)
-            ax.set_ylim(1080, 0)  # y軸を反転
-            ax.set_box_aspect(1080 / 1920)  # 縦横比を固定
-
-            fig.text(0.1,0.05, f"Fixations: {len(fix_df)}", color="black", fontsize=14, bbox=dict(facecolor='white', edgecolor='black'))
+            # fig.text(0.1,0.05, f"Fixations: {len(fix_df)}", color="black", fontsize=14, bbox=dict(facecolor='white', edgecolor='black'))
 
 
-            # ラベルや装飾
-            ax.set_title(f"IVT Fixations in Trial {int(trial_num + 1)}")
-            ax.set_xlabel("X (px)")
-            ax.set_ylabel("Y (px)")
-            ax.grid(True)
+            # # ラベルや装飾
+            # ax.set_title(f"IVT Fixations in Trial {int(trial_num + 1)}")
+            # ax.set_xlabel("X (px)")
+            # ax.set_ylabel("Y (px)")
+            # ax.grid(True)
 
-            print(
-                f"ID{subject_id:03}-{experiment_id:03}の画像{experiment_id}-{int(trial_num + 1)}: {len(fix_df)} fixations detected."
-            )
+            # print(
+            #     f"ID{subject_id:03}-{experiment_id:03}の画像{experiment_id}-{int(trial_num + 1)}: {len(fix_df)} fixations detected."
+            # )
 
-            # レイアウト調整＆表示
-            # plt.tight_layout()
-            # plt.show()
-            fig.savefig(f"plotscatter_fixation_IvtFiltered/fixation_id{subject_id:03}-{experiment_id:03}_trial{int(trial_num + 1)}.png",
-            dpi=300, bbox_inches='tight')
+            # # レイアウト調整＆表示
+            # # plt.tight_layout()
+            # # plt.show()
+            # fig.savefig(f"plotscatter_fixation_IvtFiltered/fixation_id{subject_id:03}-{experiment_id:03}_trial{int(trial_num + 1)}.png",
+            # dpi=300, bbox_inches='tight')
 
             # plt.close(fig)  # ← これを忘れない
+            """
 
-# new1_df=interpolate_missing(eye_df)
+            # ファイル名（例：補完後のデータを保存）
+            output_path = f"exported_csv/fixation_IVT/fix_df_{subject_id:03}-{experiment_id:03}-{int(trial_num)}.csv"
 
-# new2_df=apply_gaussian_filter_by_block(new1_df)
+            # # 保存（index=Falseでインデックス列を除く）
+            fix_df.to_csv(output_path, index=False, float_format="%.6f", encoding="utf-8-sig")
 
-# new3_df=detect_fixations_ivt(new2_df)
 
-# deg_to_px(new3_df["x_mean_deg"], new3_df["y_mean_deg"])

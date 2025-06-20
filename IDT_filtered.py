@@ -9,7 +9,7 @@ from scipy.ndimage import gaussian_filter1d
 # 対象の被験者19名分
 for subject_id in range(1,20):
     # 各被験者の実験課題3回分
-    for experiment_id in range(3, 4):
+    for experiment_id in range(1, 4):
         # IDT法のパラメータ
         DISPERSION_THRESHOLD = 1.0  # deg
         DURATION_THRESHOLD_MS = 100  # ms
@@ -257,9 +257,8 @@ for subject_id in range(1,20):
             # plt.close(fig)  
             
             """
+            # ファイル名（例：補完後のデータを保存）
+            output_path = f"exported_csv/fixation_IDT/fix_df_{subject_id:03}-{experiment_id:03}-{int(trial_num)}.csv"
 
-# new1_df=interpolate_missing(eye_df)
-# # print(new1_df.head())
-# new2_df=apply_gaussian_filter_by_block(new1_df)
-# new3_df=detect_fixations_idt(new2_df)
-# deg_to_px(new3_df["x_mean_deg"], new3_df["y_mean_deg"])
+            # # 保存（index=Falseでインデックス列を除く）
+            fix_df.to_csv(output_path, index=False, float_format="%.6f", encoding="utf-8-sig")
