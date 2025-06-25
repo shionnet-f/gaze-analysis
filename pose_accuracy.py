@@ -68,8 +68,8 @@ for subject_id in range(1,20):
         pose1_df = processed_df[(processed_df["epoch_time"] >= pose1_start) & (processed_df["epoch_time"] <= pose1_stop)].copy()
         pose2_df = processed_df[(processed_df["epoch_time"] >= pose2_start) & (processed_df["epoch_time"] <= pose2_stop)].copy()
 
-        pose1_df.to_csv(f"./exported_csv/pose_df/pose1_df_id{subject_id}-{experiment_id}.csv", index=False)
-        pose2_df.to_csv(f"./exported_csv/pose_df/pose2_df_id{subject_id}-{experiment_id}.csv", index=False)
+        pose1_df.to_csv(f"./exported_csv/pose_df/pose1_df_id{subject_id:03}-{experiment_id:03}.csv", index=False)
+        pose2_df.to_csv(f"./exported_csv/pose_df/pose2_df_id{subject_id:03}-{experiment_id:03}.csv", index=False)
 
         def evaluate_accuracy(df, pose_name):
             total_len = len(df)
