@@ -66,51 +66,71 @@ for subject_id in range(1,20):
         processed_df["mean_y"] = (processed_df["left_y"] + processed_df["right_y"]) / 2
         
         pose1_df = processed_df[(processed_df["epoch_time"] >= pose1_start) & (processed_df["epoch_time"] <= pose1_stop)].copy()
-        pose2_df = processed_df[(processed_df["epoch_time"] >= pose2_start) & (processed_df["epoch_time"] <= pose2_stop)].copy()
+        # pose2_df = processed_df[(processed_df["epoch_time"] >= pose2_start) & (processed_df["epoch_time"] <= pose2_stop)].copy()
 
         pose1_df.to_csv(f"./exported_csv/pose_df/pose1_df_id{subject_id:03}-{experiment_id:03}.csv", index=False)
-        pose2_df.to_csv(f"./exported_csv/pose_df/pose2_df_id{subject_id:03}-{experiment_id:03}.csv", index=False)
+        # pose2_df.to_csv(f"./exported_csv/pose_df/pose2_df_id{subject_id:03}-{experiment_id:03}.csv", index=False)
 
         def evaluate_accuracy(df, pose_name):
             total_len = len(df)
-
+            
             # validity_sum == 2 のデータのみを使う
             valid_df = df[df["validity_sum"] == 2].copy()
-
+        
             valid_df["mean_x"] = (valid_df["left_x"] + valid_df["right_x"]) / 2
             valid_df["mean_y"] = (valid_df["left_y"] + valid_df["right_y"]) / 2
             valid_df = valid_df.dropna(subset=["mean_x", "mean_y"])
-
-            # (0.5, 0.5) からの距離（正確度）
-            valid_df["accuracy_dist"] = np.sqrt((valid_df["mean_x"] - 0.5) ** 2 + (valid_df["mean_y"] - 0.5) ** 2)
-            accuracy_mean = valid_df["accuracy_dist"].mean()
-
-            # 実距離（cm）への変換
-            valid_df["distance_cm"] = valid_df["accuracy_dist"] * diag_length_cm
-
-            # 実距離 → 視野角（度）へ変換
-            valid_df["visual_angle_deg"] = np.degrees(np.arctan(valid_df["distance_cm"] / viewing_distance_cm))
-            accuracy_deg_mean = valid_df["visual_angle_deg"].mean()
-
-            # 視野角 → 実距離（代表値）に変換
-            accuracy_deg_to_cm = math.tan(math.radians(accuracy_deg_mean)) * viewing_distance_cm
-
-
-            # サマリデータの返却
+        
+            # データ行列
+            data = valid_df[["mean_x", "mean_y"]].values
+        
+            # 重心
+            center = np.mean(data, axis=0)
+        
+            # 共分散行列と逆行列
+            cov = np.cov(data, rowvar=False)
+            inv_cov = np.linalg.inv(cov)
+        
+            # 差分
+            diff = data - center
+            left = np.dot(diff, inv_cov)
+            mahal_sq = np.sum(left * diff, axis=1)
+            mahal_dist = np.sqrt(mahal_sq)
+        
+            # σ=1以内
+            within_sigma1 = np.sum(mahal_dist <= 1)
+            total_valid = len(mahal_dist)
+            percent_sigma1 = 100 * within_sigma1 / total_valid
+        
+            # 平均マハラノビス距離
+            mahal_mean = np.mean(mahal_dist)
+        
+            # ユークリッド距離も参考値で計算（正確度）
+            euclid_dist = np.linalg.norm(diff, axis=1)
+            euclid_mean = np.mean(euclid_dist)
+        
+            # ユークリッド距離→cm→視野角
+            euclid_mean_cm = euclid_mean * diag_length_cm
+            euclid_mean_deg = np.degrees(np.arctan(euclid_mean_cm / viewing_distance_cm))
+        
+            # 結果
             return {
                 "subject_id": subject_id,
                 "task_id": experiment_id,
                 "pose": pose_name,
                 "pose_length": total_len,
-                "valid_data_count": len(valid_df),
-                "accuracy_mean": accuracy_mean,
-                "accuracy_deg_mean": accuracy_deg_mean,
-                "accuracy_deg_to_cm": accuracy_deg_to_cm
+                "valid_data_count": total_valid,
+                "center_x": center[0],
+                "center_y": center[1],
+                "mahalanobis_mean": mahal_mean,
+                "percent_within_sigma1": percent_sigma1,
+                "euclid_mean": euclid_mean,
+                "euclid_mean_deg": euclid_mean_deg,
             }
-
+        
         summary_list = []
         summary_list.append(evaluate_accuracy(pose1_df, "pose1"))
-        summary_list.append(evaluate_accuracy(pose2_df, "pose2"))
+        # summary_list.append(evaluate_accuracy(pose2_df, "pose2"))
         
         summary_df = pd.DataFrame(summary_list)
         
