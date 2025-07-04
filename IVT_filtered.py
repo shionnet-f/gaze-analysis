@@ -224,6 +224,10 @@ for subject_id in range(1,20):
             fix_df["x_px"], fix_df["y_px"] = deg_to_px(
                 fix_df["x_mean_deg"], fix_df["y_mean_deg"]
             )
+            # 標準化座標(0-1)
+            fix_df["x_norm"] = fix_df["x_px"] / monitor_resolution_px[0]
+            fix_df["y_norm"] = fix_df["y_px"] / monitor_resolution_px[1]
+
             all_fixations.append(fix_df)
 
             # print("**************************************")
@@ -273,9 +277,9 @@ for subject_id in range(1,20):
             """
 
             # ファイル名（例：補完後のデータを保存）
-            # output_path = f"exported_csv/fixation_IVT/fix_df_{subject_id:03}-{experiment_id:03}-{int(trial_num)}.csv"
+            output_path = f"exported_csv/fixation_IVT/fix_df_{subject_id:03}-{experiment_id:03}-{int(trial_num)}.csv"
 
-            # # # 保存（index=Falseでインデックス列を除く）
-            # fix_df.to_csv(output_path, index=False, float_format="%.6f", encoding="utf-8-sig")
+            # # 保存（index=Falseでインデックス列を除く）
+            fix_df.to_csv(output_path, index=False, float_format="%.6f", encoding="utf-8-sig")
 
 
