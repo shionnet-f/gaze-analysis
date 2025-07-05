@@ -5,7 +5,7 @@ import os
 
 summary_df = pd.DataFrame(columns=["id", "trial", "left_eye", "right_eye", "nose", "mouth", "outside"])
 
-fix_type="IDT"
+fix_type="IVT"
 
 # 対象の被験者19名分
 for subject_id in range(1,20): 

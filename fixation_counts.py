@@ -32,7 +32,7 @@ for subject_id in range(1,20):
                 continue
 
             # 顔画像の読み込み
-            img = cv2.imread(f'../face_aoi_project/output_aoi_triangle/{experiment_id}-{trial_num + 1}.jpg')
+            img = cv2.imread(f'../face_aoi_project/output_aoi/{experiment_id}-{trial_num + 1}.jpg')
             fixation_df = pd.read_csv(fixation_path)
 
 
@@ -123,7 +123,7 @@ for subject_id in range(1,20):
             df_result.insert(1, 'total_fixation', total_fix)
 
             # ファイル名
-            output_path = f"exported_csv/fixation_counts/{fix_type}_triangle/result_df_{subject_id:03}-{experiment_id:03}-{int(trial_num)}.csv"
+            output_path = f"exported_csv/fixation_counts/{fix_type}/result_df_{subject_id:03}-{experiment_id:03}-{int(trial_num)}.csv"
             # 保存（index=Falseでインデックス列を除く）
             df_result.to_csv(output_path, index=False, float_format="%.6f", encoding="utf-8-sig")
 
@@ -139,5 +139,5 @@ for subject_id in range(1,20):
             summary_df = pd.concat([summary_df, pd.DataFrame([summary_row])], ignore_index=True)
 
             # === summary_df 保存 ===
-            summary_path = f"exported_csv/fixation_counts/{fix_type}_triangle/summary_all_trials.csv"
+            summary_path = f"exported_csv/fixation_counts/{fix_type}/summary_all_trials.csv"
             summary_df.to_csv(summary_path, index=False, encoding='utf-8-sig')
