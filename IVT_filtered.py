@@ -6,7 +6,6 @@ from scipy.ndimage import gaussian_filter1d
 
 
 # IVT法による注視検出と可視化
-
 # 対象の被験者19名分
 for subject_id in range(1,20): 
     # 各被験者の実験課題3回分
@@ -21,7 +20,7 @@ for subject_id in range(1,20):
         viewer_distance_cm = 60.0
 
         # IVT法のパラメータ
-        VELOCITY_THRESHOLD = 30  # deg
+        VELOCITY_THRESHOLD = 20  # deg
         DURATION_THRESHOLD_MS = 100  # ms
 
         eye_df = pd.read_csv(
@@ -53,6 +52,7 @@ for subject_id in range(1,20):
 
         # データの有効性
         eye_df["is_valid"] = eye_df["validity_sum"] > 1
+
 
         # 100ms以下の欠損を線形補完の処理
         def interpolate_missing(df, time_col="epoch_sec", max_gap_ms=100):
@@ -281,5 +281,3 @@ for subject_id in range(1,20):
 
             # # 保存（index=Falseでインデックス列を除く）
             fix_df.to_csv(output_path, index=False, float_format="%.6f", encoding="utf-8-sig")
-
-

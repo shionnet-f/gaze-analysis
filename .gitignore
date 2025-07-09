@@ -16,5 +16,7 @@ plotscatter_fixation_IdtFiltered/
 plotstep_validity
 # 処理済みデータ(色々(試しのものも含む))
 *.csv
+*.png
+*.txt
 # 主観評価まとめ
 評価まとめ.xlsx

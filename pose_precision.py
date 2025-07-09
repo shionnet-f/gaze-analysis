@@ -119,7 +119,7 @@ for subject_id in range(1,20):
                                 "y_mean_deg": y_deg,
                             })
                     continue
-                if velocities[i] < 100:
+                if velocities[i] < 20:
                     if not in_fixation:
                         in_fixation = True
                         start_idx = i
@@ -187,7 +187,7 @@ for subject_id in range(1,20):
             return fix_df
         
         fix_df = process_pose_df_ivt(pose1_df)
-        # fix_df.to_csv(f"./exported_csv/pose_df/pose_fix_df/pose_fix_df_id{subject_id:03}-{experiment_id:03}.csv", index=False)
+        fix_df.to_csv(f"./exported_csv/pose_df/pose_fix_df/pose_fix_df_id{subject_id:03}-{experiment_id:03}.csv", index=False)
         
         # def evaluate_precision(df):
         #     total_len = len(df)

@@ -4,6 +4,8 @@ import pandas as pd
 import os
 
 summary_df = pd.DataFrame(columns=["id", "trial", "left_eye", "right_eye", "nose", "mouth", "outside"])
+# === 注視時間サマリー用DataFrame ===
+duration_summary_df = pd.DataFrame(columns=["id", "trial", "total_duration","aoi", "outside"])
 
 fix_type="IVT"
 
@@ -65,6 +67,36 @@ for subject_id in range(1,20):
 
             count_out = total_fix - count_in
 
+            # === 注視時間を集計 ===
+            duration_in = 0.0
+            duration_out = 0.0
+
+            for _, row in fixation_df.iterrows():
+                x, y = int(row["x_px"]), int(row["y_px"])
+                duration = float(row["duration_ms"])
+                if 0 <= x < mask.shape[1] and 0 <= y < mask.shape[0] and mask[y, x] == 255:
+                    duration_in += duration
+                else:
+                    duration_out += duration
+
+            total_duration = duration_in + duration_out
+
+            # === summary行を作成 ===
+            duration_summary_row = {
+                "id": f"{subject_id:03}-{experiment_id:03}",
+                "trial": trial_num,
+                "total_duration": total_duration,
+                "aoi": duration_in,
+                "outside": duration_out
+            }
+
+            # === DataFrameに追加 ===
+            duration_summary_df = pd.concat(
+                [duration_summary_df, pd.DataFrame([duration_summary_row])],
+                ignore_index=True
+            )
+
+
             # === 保存 ===
             output_path = f"exported_csv/fixation_counts/{fix_type}_triangle/aoi1_df_{subject_id:03}-{experiment_id:03}-{trial_num}.csv"
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -88,5 +120,9 @@ for subject_id in range(1,20):
                 "outside": count_out
             }])], ignore_index=True)
 
-# 最後にサマリー保存
+# # 最後にサマリー保存
 summary_df.to_csv(f"exported_csv/fixation_counts/{fix_type}_triangle/summary_aoi1.csv", index=False, encoding='utf-8-sig')
+
+# === 注視時間サマリをCSVで保存 ===
+# duration_summary_path = f"exported_csv/fixation_counts/{fix_type}_triangle/summary_durations.csv"
+# duration_summary_df.to_csv(duration_summary_path, index=False, encoding='utf-8-sig')

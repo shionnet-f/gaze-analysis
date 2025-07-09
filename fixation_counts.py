@@ -5,6 +5,9 @@ import os
 
 summary_df = pd.DataFrame(columns=["id", "trial", "left_eye", "right_eye", "nose", "mouth", "outside"])
 
+duration_summary_df = pd.DataFrame(columns=["id", "trial", "total_duration","left_eye", "right_eye", "nose", "mouth", "outside"])
+
+
 fix_type="IVT"
 
 # 対象の被験者19名分
@@ -109,6 +112,29 @@ for subject_id in range(1,20):
             inside_total = sum([aoi['count'] for aoi in aoi_labeled])
             outside_count = total_fix - inside_total
 
+            # === AOI内注視点をすべて抽出して保存 ===
+            fixations_with_aoi = []
+
+            for i, mask in enumerate(aoi_masks):
+                label = aoi_labeled[i]['label']
+                for _, row in fixation_df.iterrows():
+                    x, y = int(row['x_px']), int(row['y_px'])
+                    if 0 <= x < mask.shape[1] and 0 <= y < mask.shape[0]:
+                        if mask[y, x] == 255:
+                            row_data = row.copy()
+                            row_data['AOI_label'] = label
+                            fixations_with_aoi.append(row_data)
+
+            # DataFrameにまとめる
+            # fixations_with_aoi_df = pd.DataFrame(fixations_with_aoi)
+
+            # # ファイル名
+            # aoi_fix_output_path = f"exported_csv/fixation_counts/{fix_type}/fixations_in_AOI_{subject_id:03}-{experiment_id:03}-{int(trial_num)}.csv"
+
+            # # 保存
+            # fixations_with_aoi_df.to_csv(aoi_fix_output_path, index=False, encoding="utf-8-sig")
+
+
             # === outside の行を追加 ===
             aoi_labeled.append({
                 'label': 'outside',
@@ -116,6 +142,48 @@ for subject_id in range(1,20):
                 'cx': np.nan,
                 'cy': np.nan
             })
+
+            # === AOI別注視時間を合計する ===
+            aoi_duration_info = []
+
+            for i, mask in enumerate(aoi_masks):
+                label = aoi_labeled[i]['label']
+                duration_sum = 0.0
+
+                for _, row in fixation_df.iterrows():
+                    x, y = int(row['x_px']), int(row['y_px'])
+                    if 0 <= x < mask.shape[1] and 0 <= y < mask.shape[0]:
+                        if mask[y, x] == 255:
+                            duration_sum += float(row['duration_ms'])
+
+                aoi_duration_info.append({
+                    'label': label,
+                    'duration_sum': duration_sum
+                })
+
+            # === AOI外の注視時間を計算 ===
+            total_duration = fixation_df['duration_ms'].sum()
+            inside_duration = sum([aoi['duration_sum'] for aoi in aoi_duration_info])
+            outside_duration = total_duration - inside_duration
+
+            # === summary用の行を作成 ===
+            duration_summary_row = {
+                "id": f"{subject_id:03}-{experiment_id:03}",
+                "trial": trial_num,
+                "total_duration": total_duration
+            }
+
+            for aoi in aoi_duration_info:
+                duration_summary_row[aoi['label']] = aoi['duration_sum']
+
+            duration_summary_row['outside'] = outside_duration
+
+            # === DataFrameに追加 ===
+            duration_summary_df = pd.concat(
+                [duration_summary_df, pd.DataFrame([duration_summary_row])],
+                ignore_index=True
+            )
+
 
 
             # === DataFrame化 ===
@@ -141,3 +209,8 @@ for subject_id in range(1,20):
             # === summary_df 保存 ===
             summary_path = f"exported_csv/fixation_counts/{fix_type}/summary_all_trials.csv"
             summary_df.to_csv(summary_path, index=False, encoding='utf-8-sig')
+
+            # === 全試行分をCSVで保存 ===
+            # duration_summary_path = f"exported_csv/fixation_counts/{fix_type}/summary_durations_all_trials.csv"
+            # duration_summary_df.to_csv(duration_summary_path, index=False, encoding='utf-8-sig')
+

@@ -18,7 +18,7 @@ for subject_id in range(1,20):
             raise ValueError("eye_dfに必要な列がありません")
 
         # duration判定
-        sampling_df["duration_ok"] = sampling_df["duration_sec"] >= 39.9
+        sampling_df["duration_ok"] = sampling_df["duration_sec"] >= 10
 
         # eye_df 有効率条件
         eye_df["validity_ok"] = eye_df["rate_valid_interp_1_or_2"] >= 60

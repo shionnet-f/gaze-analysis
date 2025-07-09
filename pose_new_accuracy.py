@@ -3,7 +3,7 @@ import numpy as np
 import os
 
 summary_records = []
-RADIUS_PX = 75
+RADIUS_PX = 100
 center_x = 1920 / 2
 center_y = 1080 / 2
 
